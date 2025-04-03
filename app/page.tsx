@@ -1,20 +1,31 @@
-// File: app/page.tsx
 import { neon } from '@neondatabase/serverless';
 
-export default function Page() {
-  async function create(formData: FormData) {
-    'use server';
-    // Connect to the Neon database
-    const sql = neon(`${process.env.DATABASE_URL}`);
-    const comment = formData.get('comment');
-    // Insert the comment from the form into the Postgres database
-    await sql.query('INSERT INTO comments (comment) VALUES ($1)', [comment]);
-  }
+interface MenuItem {
+  id: number;
+  name: string;
+  base_price: number;
+}
+
+export default async function Page() {
+  const sql = neon(`${process.env.DATABASE_URL}`);
+
+  const result = await sql`SELECT id, name, base_price FROM menu_items`;
+  const menuItems: MenuItem[] = await sql.query(
+    'SELECT id, name, base_price FROM menu_items'
+  );
+  // Record <string, any>[]
+  console.log(result);
 
   return (
-    <form action={create}>
-      <input type="text" placeholder="write a comment" name="comment" />
-      <button type="submit">Submit</button>
-    </form>
+    <div>
+      <h1>Menu Items</h1>
+      <ul>
+        {menuItems.map((item) => (
+          <li key={item.id}>
+            {item.name}: ${item.base_price}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
